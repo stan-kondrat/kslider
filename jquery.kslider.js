@@ -11,10 +11,6 @@
 
 	// функция рассчитывает состаяние слайдера
 	function calcStates (position){
-		widthWrapper = wrapper.width();
-		widthElement = element.width();
-		widthPos = (widthWrapper - widthElement) / (states - 1) // ширина области для одного состояния
-		widthExtrm = widthPos/2 + widthElement/2; 
 
 		// Область для первого состания
 		if (position < widthExtrm) {
@@ -45,12 +41,43 @@
 		wrapper.addClass("kslider");
 		element.addClass("kslider-element").appendTo(this);
 
+		// рассчитываем значения
+		widthWrapper = wrapper.width();
+		widthElement = element.width();
+		widthPos = (widthWrapper - widthElement) / (states - 1) // ширина области для одного состояния
+		widthExtrm = widthPos/2 + widthElement/2; 
+
 		// обрабатываем клик на слайдер
 		$(wrapper).on('click', function(e){
 			var position = e.pageX - e.target.offsetLeft;
 			calcStates(position);
 			setState();
 		});
+
+
+		// перетаскивание слайдера
+		var offsetX = null;
+		var move = function(e) {
+			var left = e.pageX - offsetX;
+			if (left > widthWrapper - widthElement) left = widthWrapper - widthElement;
+			if (left < 0) left = 0;
+			element.css("left", parseInt(left));
+		};
+		var up = function(e) {
+			element.unbind("mouseup", up);
+			$(document).unbind("mousemove", move);
+			var pos = element.position();
+			calcStates(pos.left);
+			setState();
+		};
+		element.bind("mousedown", function(e) {
+			var pos = element.position();
+			offsetX = e.pageX - pos.left;
+			$(document).bind("mousemove", move);
+			element.bind("mouseup", up);
+		});	
+
+
 
 		return this;
 	};
